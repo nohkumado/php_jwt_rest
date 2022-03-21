@@ -12,7 +12,9 @@ require_once 'php-jwt/src/BeforeValidException.php';
 include_once 'php-jwt/src/ExpiredException.php';
 include_once 'php-jwt/src/SignatureInvalidException.php';
 include_once 'php-jwt/src/JWT.php';
+include_once 'php-jwt/src/Key.php';
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 require_once("rest.php");
 /**
   class definition
@@ -81,6 +83,38 @@ class Processor extends REST
     if(is_array($data)){
       return json_encode($data);
     }
+  }
+  function validateToken($jwt)
+  {
+    $result = array();
+    // if jwt is not empty
+    if($jwt)
+    {
+      // if decode succeed, show user details
+      try
+      {
+	// decode jwt
+	$decoded = JWT::decode($jwt, new Key($this->key, $this->encodingalgo));
+	$result["code"] = 200;
+	$result["decoded"] = $decoded->data;
+      }
+      catch (Exception $e)
+      {
+	$result["code"] = 401;
+	$result["message"] = $e->getMessage();
+      }// catch (Exception $e)
+      catch (\Firebase\JWT\ExpiredException $e)
+      {
+	$result["code"] = 401;
+	$result["message"] = $e->getMessage();
+      }// catch (Exception $e)
+    }// if($jwt)
+    else // show error message if jwt is empty
+    {
+      $result["code"] = 401;
+      $result["message"] = "Access denied.";
+    }
+    return $result;
   }
 }
 ?>
