@@ -58,7 +58,6 @@ class Processor extends REST
   {
     $func = "notdefined";
     $data = $_POST;
-    //print("retrieved ".print_r($data,true));
     if(is_array($_POST) && array_key_exists('rquest',$_POST)) $func = strtolower(trim(str_replace("/","",$_POST['rquest'])));
     else 
     {
@@ -70,11 +69,12 @@ class Processor extends REST
       else
 	print("nothing in request?? neither POST".print_r($_POST,true)." nor json :".print_r($data,true) );
     }
+    //print("retrieved ".print_r($data,true));
     //print("executing $func");
     if((int)method_exists($this,$func) > 0)
       $this->$func($data);
     else
-      $this->response('try something that works, dude!',404);				// If the method not exist with in this class, response would be "Page not found".
+      $this->response($func.': try something that works, dude!',404);				// If the method not exist with in this class, response would be "Page not found".
   }
   /**
    * Encode array into JSON
@@ -95,8 +95,10 @@ class Processor extends REST
       {
 	// decode jwt
 	$decoded = JWT::decode($jwt, new Key($this->key, $this->encodingalgo));
+	// cast to array
+	$decoded = json_decode(json_encode($decoded), true);
 	$result["code"] = 200;
-	$result["decoded"] = $decoded->data;
+	$result["decoded"] = $decoded["data"];
       }
       catch (Exception $e)
       {
